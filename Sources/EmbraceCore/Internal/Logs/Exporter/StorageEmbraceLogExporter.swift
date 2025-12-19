@@ -60,13 +60,6 @@ class StorageEmbraceLogExporter: LogRecordExporter {
 
         for var log in logRecords where validation.execute(log: &log) {
 
-            // do not export crash logs (unless they come from metrickit)
-            if log.isEmbType(LogType.crash)
-                && log.attributes[LogSemantics.Crash.keyProvider] != .string(LogSemantics.Crash.metrickitProvider)
-            {
-                continue
-            }
-
             // apply log limits (ignoring internal logs, crashes and hangs)
             let canExport = counter.withLock {
                 guard !log.isEmbType(LogType.internal),
