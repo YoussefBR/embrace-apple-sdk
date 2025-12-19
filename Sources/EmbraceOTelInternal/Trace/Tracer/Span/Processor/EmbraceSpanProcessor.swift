@@ -186,8 +186,11 @@ package class EmbraceSpanProcessor: SpanProcessor {
         // add session id attribute
         if let sessionId = sessionIdProvider?() {
             var attributes = spanData.attributes
+            var totalAttributeCount = spanData.totalAttributeCount
             attributes[SpanSemantics.keySessionId] = .string(sessionId)
+            totalAttributeCount += 1
             spanData = spanData.settingAttributes(attributes)
+            spanData = spanData.settingTotalAttributeCount(totalAttributeCount)
         }
 
         // add resource
