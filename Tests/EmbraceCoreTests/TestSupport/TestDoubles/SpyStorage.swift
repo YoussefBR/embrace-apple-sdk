@@ -50,6 +50,13 @@ class SpyStorage: Storage {
         return stubbedFetchCustomPropertiesForSessionId
     }
 
+    var didCallFetchAllCustomProperties = false
+    var stubbedFetchAllCustomProperties: [EmbraceMetadata] = []
+    func fetchAllCustomProperties() -> [EmbraceMetadata] {
+        didCallFetchAllCustomProperties = true
+        return stubbedFetchAllCustomProperties
+    }
+    
     var didCallFetchPersonaTagsForSessionId = false
     var fetchPersonaTagsForSessionIdReceivedParameter: SessionIdentifier!
     var stubbedFetchPersonaTagsForSessionId: [EmbraceMetadata] = []

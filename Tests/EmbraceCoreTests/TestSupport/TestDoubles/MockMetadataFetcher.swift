@@ -37,6 +37,12 @@ class MockMetadataFetcher: EmbraceStorageMetadataFetcher {
         }
     }
 
+    func fetchAllCustomProperties() -> [EmbraceMetadata] {
+        return metadata.filter { record in
+            record.type == .customProperty && (record.lifespan == .process || record.lifespan == .permanent)
+        }
+    }
+    
     func fetchPersonaTagsForSessionId(_ sessionId: SessionIdentifier) -> [EmbraceMetadata] {
         return metadata.filter { record in
             record.type == .personaTag && record.lifespan == .session && record.lifespanId == sessionId.toString

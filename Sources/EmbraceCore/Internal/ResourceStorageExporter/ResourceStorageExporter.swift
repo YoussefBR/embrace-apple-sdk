@@ -40,6 +40,15 @@ class ResourceStorageExporter: EmbraceResourceProvider {
             partialResult[record.key] = .string(record.value)
         }
 
+        // Also include custom properties (with process and permanent lifespans)
+        let customProperties = storage.fetchAllCustomProperties()
+        for property in customProperties {
+            let key = "emb.properties.\(property.key)"
+            if attributes[key] == nil {
+                attributes[key] = .string(property.value)
+            }
+        }
+        
         if attributes[SemanticConventions.Service.name.rawValue] == nil {
             let serviceName = [Bundle.main.bundleIdentifier, ProcessInfo.processInfo.processName]
                 .compactMap { $0 }

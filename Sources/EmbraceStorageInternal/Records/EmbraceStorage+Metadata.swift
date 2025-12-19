@@ -14,6 +14,7 @@ public protocol EmbraceStorageMetadataFetcher: AnyObject {
     func fetchResourcesForSessionId(_ sessionId: SessionIdentifier) -> [EmbraceMetadata]
     func fetchResourcesForProcessId(_ processId: ProcessIdentifier) -> [EmbraceMetadata]
     func fetchCustomPropertiesForSessionId(_ sessionId: SessionIdentifier) -> [EmbraceMetadata]
+    func fetchAllCustomProperties() -> [EmbraceMetadata]
     func fetchPersonaTagsForSessionId(_ sessionId: SessionIdentifier) -> [EmbraceMetadata]
     func fetchPersonaTagsForProcessId(_ processId: ProcessIdentifier) -> [EmbraceMetadata]
 }
@@ -423,6 +424,30 @@ extension EmbraceStorage {
         }
 
         return fetchCustomProperties(sessionId: session.idRaw, processId: session.processIdRaw)
+    }
+
+    /// Returns immutable copies of all records of the `.customProperty` type with `.process` or `.permanent` lifespan
+    public func fetchAllCustomProperties() -> [EmbraceMetadata] {
+        let request = MetadataRecord.createFetchRequest()
+        request.predicate = NSCompoundPredicate(
+            type: .and,
+            subpredicates: [
+                customPropertyPredicate(),
+                lifespanPredicate(processId: ProcessIdentifier.current.value)
+            ]
+        )
+
+        // fetch
+        var result: [EmbraceMetadata] = []
+        coreData.fetchAndPerform(withRequest: request) { records in
+
+            // convert to immutable structs
+            result = records.map {
+                $0.toImmutable()
+            }
+        }
+
+        return result
     }
 
     /// Returns immutable copies of all records of the `.personaTag` type that are tied to a given session id and process id
