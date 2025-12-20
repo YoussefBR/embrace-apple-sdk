@@ -26,9 +26,7 @@ class UnsentDataHandler {
         completion: UnsentDataHandlerCompletion? = nil
     ) {
 
-        guard let storage = storage,
-            let upload = upload
-        else {
+        guard let storage = storage else {
             completion?()
             return
         }
@@ -66,7 +64,7 @@ class UnsentDataHandler {
                         }
                     )
                 }
-            } else {
+            } else if let upload = upload {
                 group.enter()
                 sendSessions(
                     storage: storage,
@@ -88,7 +86,7 @@ class UnsentDataHandler {
 
     static private func sendCrashReports(
         storage: EmbraceStorage,
-        upload: EmbraceUpload,
+        upload: EmbraceUpload?,
         otel: EmbraceOpenTelemetry?,
         currentSessionId: SessionIdentifier?,
         crashReporter: EmbraceCrashReporter,
@@ -101,7 +99,6 @@ class UnsentDataHandler {
 
         // send crash reports
         for report in crashReports {
-
             var session: EmbraceSession?
 
             // link session with crash report if possible
@@ -137,14 +134,16 @@ class UnsentDataHandler {
             }
         }
 
-        // send sessions
-        group.enter()
-        sendSessions(
-            storage: storage,
-            upload: upload,
-            currentSessionId: currentSessionId
-        ) {
-            group.leave()
+        // send sessions only if upload is available
+        if let upload = upload {
+            group.enter()
+            sendSessions(
+                storage: storage,
+                upload: upload,
+                currentSessionId: currentSessionId
+            ) {
+                group.leave()
+            }
         }
 
         group.leave()
@@ -236,6 +235,21 @@ class UnsentDataHandler {
             .addSessionIdentifier()
             .addCrashReportProperties()
             .build()
+
+        var crashAttributes: [String: String] = [
+            "crashId": report.id.uuidString,
+            "crashProvider": report.provider
+        ]
+        if let crashSessionId = report.sessionId {
+            crashAttributes["crashSessionId"] = crashSessionId
+        }
+        if let timeOfCrash = report.timestamp {
+            crashAttributes["timeOfCrash"] = String(timeOfCrash.timeIntervalSince1970)
+        }
+        if let crashSignal = report.signal {
+            crashAttributes["crashSignal"] = crashSignal.stringValue
+        }
+        Embrace.client?.log("Crash occured", severity: .error, timestamp: timestamp, attributes: crashAttributes)
 
         otel?.log(
             "",

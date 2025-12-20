@@ -58,6 +58,7 @@ extension Embrace {
             crashReporter: CrashReporter?,
             logLevel: LogLevel = .default,
             export: OpenTelemetryExport? = nil,
+            runtimeConfiguration: EmbraceConfigurable = .default,
             processors: [OpenTelemetryProcessor]? = nil,
             backtracer: Backtracer? = nil,
             symbolicator: Symbolicator? = nil
@@ -65,12 +66,12 @@ extension Embrace {
             self.appId = appId
             self.appGroupId = appGroupId
             self.platform = platform
-            self.endpoints = endpoints ?? .init(appId: appId)
+            self.endpoints = endpoints
             self.services = captureServices
             self.crashReporter = crashReporter
             self.logLevel = logLevel
             self.export = export
-            self.runtimeConfiguration = nil
+            self.runtimeConfiguration = runtimeConfiguration
             self.processors = processors
             self.backtracer = backtracer
             self.symbolicator = symbolicator
